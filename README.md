@@ -12,8 +12,7 @@ A desktop app to remotely manage blog posts on a server using Python, Tkinter, a
 ## 🚀 Features
 
 - 🔒 Secure SFTP integration (via `paramiko`)
-- ✍️ Add rich blog posts with images and metadata
-- 📂 Automatically updates `meta.json` post index
+- ✍️ Add blog posts with images and metadata
 - ❌ Delete old posts with confirmation
 - 🖼️ GUI-based interface for ease of use
 
