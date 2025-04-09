@@ -4,9 +4,16 @@ import paramiko
 import os
 from datetime import datetime
 from bs4 import BeautifulSoup # pip3 install beautifulsoup4
+import json
+import re
 
 # variable to store the saved item
 saved_item = None
+
+# variable to cycle through the list of posts
+post_index = 0 # 0 aka the first post in the list
+post_page_size = 10 # number of posts to show at a time
+
 
 # Load configuration
 config = {}
@@ -50,11 +57,11 @@ def add_blog_post(title, date, content, cover_image):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{title}</title>
-        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="../styles.css">
     </head>
     <body>
         <header>
-            <h5><a href="index.html">MOUTHS MADE WORDLESS</a></h5>
+            <h5><a href="../index.html">MOUTHS MADE WORDLESS</a></h5>
             <h1>{title}</h1>
         </header>
         <section>
@@ -69,32 +76,51 @@ def add_blog_post(title, date, content, cover_image):
 
 
     # Upload new blog post HTML file to the posts folder
-    sftp.put(new_post_filename, f'{ config["publicFilePath"] }{new_post_filename}')
+    sftp.put(new_post_filename, f'{ config["publicFilePath"] }posts/{new_post_filename}')
+    
+    meta_path = f'{config["publicFilePath"]}posts/meta.json'
+    local_meta_tmp = 'meta_tmp.json'
 
-    # Add new blog post to index.html
-    new_article = soup.new_tag('article', **{'class': 'blog-post'})
-    new_link = soup.new_tag('a', href=f'./{new_post_filename}', **{'class': 'blog-post-link'})
-    new_div = soup.new_tag('div', **{'class': 'blog-post-content'})
-    new_img = soup.new_tag('img', src=cover_image, alt='Missing Image')
-    new_h2 = soup.new_tag('h2')
-    new_h2.string = title
-    new_p = soup.new_tag('p')
-    new_p.string = f"{date}"
+    # 1. Check if the remote file exists. If not, create it with an empty list.
+    try:
+        sftp.stat(meta_path)
+    except FileNotFoundError:
+        with open(local_meta_tmp, 'w') as f:
+            json.dump([], f, indent=4)
+        sftp.put(local_meta_tmp, meta_path)
 
-    new_div.append(new_img)
-    new_div.append(new_h2)
-    new_div.append(new_p)
-    new_link.append(new_div)
-    new_article.append(new_link)
-    soup.find(id='blog-posts').append(new_article)
+    # 2. Download the file temporarily
+    sftp.get(meta_path, local_meta_tmp)
 
-    # Save updated index.html
-    with open('index.html', 'w') as f:
-        f.write(str(soup))
+    # 3. Load the existing JSON list
+    with open(local_meta_tmp, 'r') as f:
+        try:
+            posts = json.load(f)
+            if not isinstance(posts, list):
+                raise ValueError("meta.json is not a list")
+        except json.JSONDecodeError:
+            posts = []
 
-    # Upload updated index.html
-    sftp.put('index.html', f"{config['publicFilePath']}index.html")
+    # 4. Append the new post safely
+    new_post = {
+        "filename": new_post_filename,
+        "title": title,
+        "date": date,
+        "cover_image": cover_image
+    }
+    # append the new post to the start of the list of posts
+    posts.insert(0, new_post)
 
+    # 5. Write updated list back to local file
+    with open(local_meta_tmp, 'w') as f:
+        json.dump(posts, f, indent=4)
+
+    # 6. Upload back to server
+    sftp.put(local_meta_tmp, meta_path)
+
+    # 7. Clean up
+    os.remove(local_meta_tmp)
+    
     # Clean up local files
     os.remove(new_post_filename)
 
@@ -128,10 +154,9 @@ def prompt_for_blog_post():
         # send the image to the images folder on the server
         image_filename = image_path.split('/')[-1]
         sftp.put(image_path, f'{ config["publicFilePath"] }images/{image_filename}')
-
         
         if image_path:
-            image_tag = f'<img src="images/{image_filename}" alt="Missing Image"><p class="image-caption"><i>Image Caption Here</i></p>'
+            image_tag = f'<img src="../images/{image_filename}" alt="Missing Image"><p class="image-caption"><i>Image Caption Here</i></p>'
             content_text.insert(tk.INSERT, image_tag)
 
     def insert_home_image():
@@ -144,7 +169,7 @@ def prompt_for_blog_post():
 
         # set the cover image to the image path
         cover_image_entry.delete(0, tk.END)
-        cover_image_entry.insert(0, f'images/{image_filename}')
+        cover_image_entry.insert(0, f'./images/{image_filename}')
 
     prompt_root = tk.Tk()
     prompt_root.title("New Blog Post")
@@ -173,37 +198,71 @@ def prompt_for_blog_post():
     prompt_root.mainloop()
     
 
-    
-
-# List existing blog posts
-def list_blog_posts():
-    # Find all blog posts in index.html
-    posts = soup.find_all('article', class_='blog-post')
-    post_titles = [post.find('h2').text for post in posts]
-    return post_titles
-
 def remove_blog_post(title):
-    # Find the blog post by title
-    posts = soup.find_all('article', class_='blog-post')
-    for post in posts:
-        if post.find('h2').text == title:
-            # get the name of the html file
-            link = post.find('a')['href'].split('/')[-1]
-            # remove the blog post file 
-            sftp.remove(f'{ config["publicFilePath"] }{link}')
-            print(f"Removed blog post file: {link}")
-            
-            # remove the blog post from the index.html
-            post.decompose()
-            print(f"Removed blog post: {title}")
-            break
+    if not title:
+        messagebox.showwarning("Selection Error", "No blog post selected!")
+        return
 
-    # Save updated index.html
-    with open('index.html', 'w') as f:
-        f.write(str(soup))
+    # Confirm deletion
+    if not messagebox.askyesno("Confirm Deletion", f"Are you sure you want to delete the blog post '{title}'?"):
+        return
 
-    # Upload updated index.html
-    sftp.put('index.html', f'{ config["publicFilePath"] }index.html')
+    meta_path = f'{config["publicFilePath"]}posts/meta.json'
+    local_meta_tmp = 'meta_tmp.json'
+
+    try:
+        # Download the meta.json file temporarily
+        sftp.get(meta_path, local_meta_tmp)
+
+        # Load the existing JSON list
+        with open(local_meta_tmp, 'r') as f:
+            posts = json.load(f)
+            if not isinstance(posts, list):
+                raise ValueError("meta.json is not a list")
+
+        # Find the post to remove
+        post_to_remove = next((post for post in posts if post.get("title") == title), None)
+        if not post_to_remove:
+            messagebox.showerror("Error", "Blog post not found in meta.json!")
+            return
+
+        # Get the filename of the post
+        post_filename = post_to_remove.get("filename")
+        if not post_filename:
+            messagebox.showerror("Error", "Post filename not found!")
+            return
+
+        # Delete the post file from the server
+        try:
+            sftp.remove(f'{config["publicFilePath"]}posts/{post_filename}')
+        except FileNotFoundError:
+            print(f"Post file {post_filename} not found on the server. Skipping deletion.")
+
+        # Remove the post from the meta.json list
+        posts = [post for post in posts if post.get("title") != title]
+
+        # Write updated list back to local file
+        with open(local_meta_tmp, 'w') as f:
+            json.dump(posts, f, indent=4)
+
+        # Upload the updated meta.json file back to the server
+        sftp.put(local_meta_tmp, meta_path)
+
+        # Remove the local temporary file
+        os.remove(local_meta_tmp)
+
+        messagebox.showinfo("Success", f"Blog post '{title}' removed successfully!")
+
+    except FileNotFoundError:
+        messagebox.showerror("Error", "meta.json not found on the server!")
+    except json.JSONDecodeError:
+        messagebox.showerror("Error", "Error decoding meta.json. Please check its format.")
+    except Exception as e:
+        messagebox.showerror("Error", f"An unexpected error occurred: {e}")
+    finally:
+        # Clean up local temporary file if it exists
+        if os.path.exists(local_meta_tmp):
+            os.remove(local_meta_tmp)
 
     # Refresh the listbox
     root.destroy()
@@ -230,13 +289,33 @@ def main():
     global root
     root = tk.Tk()
     root.title("Blog Post Manager")
-    root.geometry("800x600")
+    root.geometry("300x300")
 
     tk.Label(root, text="Existing Blog Posts:").pack()
     post_listbox = tk.Listbox(root)
     post_listbox.pack()
-    for post in list_blog_posts():
-        post_listbox.insert(tk.END, post)
+
+    # create the list of posts from the meta.json file
+    meta_path = f'{config["publicFilePath"]}posts/meta.json'
+    local_meta_tmp = 'meta_tmp.json'
+
+    # Download the meta.json file temporarily
+    try:
+        sftp.get(meta_path, local_meta_tmp)
+        with open(local_meta_tmp, 'r') as f:
+            posts = json.load(f)
+            if isinstance(posts, list):
+                for post in posts:
+                    post_listbox.insert(tk.END, post.get("title", "Untitled Post"))
+    except FileNotFoundError:
+        print("meta.json not found on the server. No posts to display.")
+    except json.JSONDecodeError:
+        print("Error decoding meta.json. Please check its format.")
+    finally:
+        if os.path.exists(local_meta_tmp):
+            os.remove(local_meta_tmp)
+            
+
 
     # bind the listbox to the save_selection function aka saves the selected item within the list of posts
     post_listbox.bind("<ButtonRelease-1>", lambda event: save_selection(post_listbox))

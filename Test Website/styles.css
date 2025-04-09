@@ -1,0 +1,281 @@
+@font-face {
+    font-family: 'Georgia';
+    src: url('./fonts/georgia.ttf') format('truetype');
+}
+body {
+    background-color: black;
+    /*  set the background image to be ./images/Background.PNG*/
+    background-image: url('./images/Background.PNG');
+    background-repeat: repeat-y;
+    background-size: cover;
+    color: white;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Georgia', san-serif, serif;
+    font-weight: normal;
+}
+
+h2 {
+    font-family: 'Georgia', serif;
+    font-weight: normal;
+}
+
+h1 {
+    font-family: 'Georgia', serif;
+    font-weight: normal;
+}
+
+header {
+    margin: 20px 0px;
+    font-size: 25pt;
+    font-family: 'Georgia', serif;
+}
+
+header a {
+    text-decoration: none;
+    color: inherit;
+}
+
+a {
+    text-decoration: none;
+    color: #fce8b2;
+}
+
+
+#Content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    
+}
+
+#contact {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 0 10px;
+}
+
+#contact label {
+    margin-top: 10px;
+}
+
+#contact input,
+#contact textarea {
+    width: 100%;
+    margin-top: 5px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 1px;
+}
+
+#contact button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #ffffff;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#contact button:hover {
+    background-color: #ffffff;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    margin: 0 0px;
+    padding: 0;
+}
+
+nav ul li {
+    margin: 0 10px;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+nav ul li a:hover {
+    color: white;
+}
+
+#search-bar {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+#search-bar input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#search-bar button {
+    padding: 5px 10px;
+    margin-left: 5px;
+    background-color: #ffffff;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#search-bar button:hover {
+    background-color: #ffffff;
+}
+
+#blog-posts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0px;
+    margin: 0 0px 0 0px;
+    
+}
+
+
+.blog-post {
+    background: #000000;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 10px 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+    width: 400px;
+    height: 285px;
+}
+
+#blog-posts button {
+    background: none;
+    border: none;
+    float: right;
+}
+
+.blog-post img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    aspect-ratio: 2 / 1;
+}
+
+.blog-post-link {
+    text-decoration: none;
+}
+
+.blog-post-content {
+    margin: 10px 10px;
+    padding: 0px;
+
+}
+
+.blog-post-content h2 {
+    margin: 2px 10px;
+    color: #fff;
+}
+
+.blog-post-content p {
+    margin: 2px 30px;
+    color: #ccc;
+}
+
+.blog-post-content a {
+    color: #1e90ff;
+    text-decoration: none;
+}
+
+.blog-post:hover {
+    transform: scale(1.02);
+    cursor: pointer;
+}
+
+.about-content a{
+    color: #e9dc92;
+    text-decoration: none;
+}
+.about-content p{
+    font-size: large;
+}
+
+.about-content {
+    background: #000000;
+}
+
+#blog-post-page {
+    background-color: #000000;
+    margin: 30px 150px;
+    font-size: larger;
+}
+#blog-post-page h1 {
+    font-size: 40px;
+    margin: 0px 0px;
+}
+
+.blog-post-content p {
+    font-size: larger;
+    margin: 2px 30px;
+}
+
+.blog-post-content img {
+    width: 98%;
+    display: block;
+    margin: 0 auto;
+}
+
+.blog-post-page-content {
+    margin: 20px 20px;
+    padding: 20px 20px;
+    background: #000000;
+
+}
+
+.blog-post-page-content p {
+    font-size: larger;
+    margin: 20px 20px;
+}
+
+.blog-post-page-content img {
+    width: 60%;
+    display: block;
+    margin: 0 auto;
+}
+
+#blog-posts .blog-post:first-child {
+    grid-column: span 2;
+    width: 100%; /* override fixed width */
+    height: auto; /* adjust height as needed */
+}
+
+
+.image-caption {
+    font-size: 11px;
+    color: #ccc;
+    text-align: center;
+}
+
+#load-more {
+    background: #000000;
+    color: #f3df88;
+    text-align: center;
+    padding: 10px 10px;
+    margin: 20px auto;
+    cursor: pointer;
+    border: solid 2px #f3df88;
+    border-radius: 1px;
+    display: block;
+}
+
+footer {
+    background: #00000036;
+    color: #fff;
+    text-align: center;
+    padding: 0;
+    margin: 0px 0px;
+    
+}
+
+
