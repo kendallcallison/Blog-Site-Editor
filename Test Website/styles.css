@@ -103,15 +103,22 @@ nav ul li a:hover {
     color: white;
 }
 
-#search-bar {
+#search-bar, #sort-order{
+    background-color: #020202ad;
+    color: #dfdede;
     margin-left: auto;
     display: flex;
     align-items: center;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    padding: 4px;
 }
-
+#sort-order {
+    border: 0px solid #ccc;
+}
 #search-bar input {
     padding: 5px;
-    border: 1px solid #ccc;
+    border: 1px solid #ebebeb;
     border-radius: 5px;
 }
 
@@ -136,6 +143,26 @@ nav ul li a:hover {
     margin: 0 0px 0 0px;
     
 }
+
+body.blogs #blog-posts {
+    grid-template-columns: 1fr 1fr 1fr;
+    width: 100%; /* override fixed width */
+    height: auto; /* adjust height as needed */
+}
+
+@media (max-width: 1230px) {
+    body.blogs #blog-posts {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 850px) {
+    body.blogs #blog-posts {
+        grid-template-columns: 1fr;
+    }
+}
+
+
 
 
 .blog-post {
@@ -244,11 +271,12 @@ nav ul li a:hover {
     margin: 0 auto;
 }
 
-#blog-posts .blog-post:first-child {
+body.index #blog-posts .blog-post:first-child {
     grid-column: span 2;
     width: 100%; /* override fixed width */
     height: auto; /* adjust height as needed */
 }
+
 
 
 .image-caption {
